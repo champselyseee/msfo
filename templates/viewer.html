@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+  <title>Бухгалтерская отчётность • PDF Архив</title>
+  <!-- Шрифт Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background: #0b0f15;
+  color: #e4e8ee;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem;
+  gap: 1.25rem;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Основной контейнер: карточка сверху, панель + pdf снизу */
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 1.25rem;
+  min-height: 0;
+}
+
+/* Карточка информации о документе */
+.info-card {
+  background: #141a22;
+  border: 1px solid #212833;
+  border-radius: 1.5rem;
+  padding: 1.25rem 1.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+.company-block {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.company-icon {
+  width: 3rem;
+  height: 3rem;
+  background: #1f2a37;
+  border-radius: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  color: #b0c7e9;
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.3);
+}
+
+.company-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.company-name {
+  font-weight: 600;
+  font-size: 1.3rem;
+  letter-spacing: -0.3px;
+  color: #f0f4fc;
+}
+
+.doc-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.2rem;
+  align-items: center;
+  color: #a1b4cc;
+  font-size: 0.9rem;
+}
+
+.doc-meta span {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: #1d2530;
+  padding: 0.3rem 0.9rem;
+  border-radius: 2rem;
+  white-space: nowrap;
+}
+
+.doc-type-badge {
+  background: #1d3b5c;
+  color: #c6e0ff;
+  font-weight: 500;
+}
+
+.extra-field {
+  background: #1f2a34;
+  padding: 0.3rem 1rem;
+  border-radius: 2rem;
+  font-weight: 500;
+  color: #cbd5e1;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.9rem;
+}
+
+.extra-field i {
+  font-style: normal;
+  font-size: 1rem;
+}
+
+/* Макет: боковая панель + область просмотра */
+.viewer-layout {
+  display: flex;
+  flex: 1;
+  gap: 1.25rem;
+  min-height: 0;
+}
+
+/* Список файлов (слева) */
+.file-panel {
+  width: 260px;
+  background: #11171f;
+  border-radius: 1.5rem;
+  border: 1px solid #222b38;
+  padding: 1.25rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  flex-shrink: 0;
+}
+
+.panel-title {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: #7289a0;
+  padding: 0 0.6rem;
+  margin-bottom: 0.2rem;
+  font-weight: 600;
+}
+
+.file-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.file-item {
+  background: #1a212b;
+  border: 1px solid #273141;
+  border-radius: 1rem;
+  padding: 0.85rem 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: #ccdbe9;
+  font-weight: 500;
+  font-size: 0.9rem;
+  word-break: break-word;
+}
+
+.file-item.active {
+  background: #1e3a5f;
+  border-color: #3b6cb7;
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 120, 255, 0.25);
+}
+
+.file-item:hover:not(.active) {
+  background: #1f2937;
+  border-color: #3a4655;
+}
+
+.file-icon {
+  font-size: 1.2rem;
+  opacity: 0.85;
+}
+
+/* PDF Viewer */
+.pdf-container {
+  flex: 1;
+  background: #0d1219;
+  border-radius: 1.5rem;
+  border: 1px solid #242e3c;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.7);
+  min-height: 0;
+}
+
+.pdf-viewer {
+  flex: 1;
+  width: 100%;
+  border: none;
+  background: #525659; /* фон под pdf, похож на Adobe */
+}
+
+/* Таймер удаления */
+.timer-bar {
+  background: #10151c;
+  border: 1px solid #242d3a;
+  border-radius: 2rem;
+  padding: 0.6rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #b9c7dd;
+  margin-top: 0.1rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+.timer-value {
+  background: #1e2a38;
+  padding: 0.25rem 1rem;
+  border-radius: 2rem;
+  font-weight: 600;
+  color: #f0c38c;
+  letter-spacing: 0.3px;
+  font-variant-numeric: tabular-nums;
+}
+
+.delete-warning {
+  color: #f28b82;
+  font-size: 0.8rem;
+  margin-left: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+@media (max-width: 700px) {
+  body {
+    padding: 0.8rem;
+    gap: 0.8rem;
+  }
+  .info-card {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1rem 1.2rem;
+  }
+  .viewer-layout {
+    flex-direction: column;
+  }
+  .file-panel {
+    width: 100%;
+    max-height: 150px;
+    flex-shrink: 0;
+  }
+  .file-list {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .file-item {
+    flex: 1 1 auto;
+    white-space: nowrap;
+    padding: 0.6rem 0.9rem;
+  }
+}
+
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <!-- Верхняя информационная карточка -->
+    <div class="info-card">
+      <div class="company-block">
+        <div class="company-icon">📊</div>
+        <div class="company-details">
+          <div class="company-name">ООО «ФинансПроект»</div>
+          <div class="doc-meta">
+            <span class="doc-type-badge">📄 Бухгалтерский баланс</span>
+            <span>📅 2024 • 1 квартал</span>
+            <span>🗓️ 12.04.2025</span>
+          </div>
+        </div>
+      </div>
+      <div class="extra-field">
+        <i>🔐</i> Аудитор: АКГ «КапиталЪ»
+      </div>
+    </div>
+
+<!-- Макет: список файлов + PDF viewer -->
+<div class="viewer-layout">
+  <!-- Левая панель со списком документов -->
+  <div class="file-panel">
+    <div class="panel-title">📁 Документы архива</div>
+    <div class="file-list" id="fileList">
+      <!-- Заполняется динамически через JS -->
+    </div>
+  </div>
+
+  <!-- PDF Viewer -->
+  <div class="pdf-container">
+    <iframe id="pdfViewer" class="pdf-viewer" src="" title="Просмотр документа PDF"></iframe>
+  </div>
+</div>
+
+<!-- Таймер автоматического удаления -->
+<div class="timer-bar" id="timerContainer">
+  <span>⏳ Автоудаление через</span>
+  <span class="timer-value" id="timerDisplay">09:58</span>
+  <span class="delete-warning" id="deleteWarning" style="display: none;">⚠️ Файлы удалены</span>
+</div>
+
+  </div>
+
+  <script>
+    (function() {
+      // --------------------------------------------------------------
+      // ДАННЫЕ: массив бухгалтерских документов (эмуляция архива)
+      // В реальном проекте PDF могут быть сгенерированы или загружены.
+      // Здесь используются демонстрационные data URI с минимальным PDF,
+      // чтобы интерфейс был полностью рабочим.
+      // --------------------------------------------------------------
+      const documents = [
+        {
+          id: 'balance',
+          name: 'Бухгалтерский баланс',
+          type: 'Форма №1',
+          pdfData: generateSamplePDF('Бухгалтерский баланс', 'ООО ФинансПроект', '31 марта 2025'),
+        },
+        {
+          id: 'profit_loss',
+          name: 'Отчет о прибылях и убытках',
+          type: 'Форма №2',
+          pdfData: generateSamplePDF('Отчет о прибылях и убытках', 'ООО ФинансПроект', '1 квартал 2025'),
+        },
+        {
+          id: 'cashflow',
+          name: 'Отчет о движении денежных средств',
+          type: 'Форма №4',
+          pdfData: generateSamplePDF('Отчет о движении денежных средств', 'ООО ФинансПроект', 'Январь–Март 2025'),
+        },
+        {
+          id: 'capital',
+          name: 'Отчет об изменениях капитала',
+          type: 'Форма №3',
+          pdfData: generateSamplePDF('Отчет об изменениях капитала', 'ООО ФинансПроект', '2025 г.'),
+        }
+      ];
+
+      // Генератор валидного PDF (минимальный, текстовый) в Base64
+      function generateSamplePDF(title, company, period) {
+        // Создаем простой PDF с помощью строки (валидный PDF 1.4)
+        const pdfContent = `%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 191 >>
+stream
+BT
+/F1 18 Tf
+50 700 Td
+(${title}) Tj
+/F1 12 Tf
+0 -40 Td
+(Компания: ${company}) Tj
+0 -25 Td
+(Отчетный период: ${period}) Tj
+0 -25 Td
+(Документ сформирован в демонстрационном режиме.) Tj
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000262 00000 n 
+0000000504 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+590
+%%EOF`;
+        
+        // Кодируем в base64 для data URI
+        const base64 = btoa(unescape(encodeURIComponent(pdfContent)));
+        return `data:application/pdf;base64,${base64}`;
+      }
+
+      // Состояние приложения
+      let currentDocIndex = 0;        // индекс активного документа
+      let timerInterval = null;
+      const INITIAL_MINUTES = 10;    // 10 минут
+      let remainingSeconds = INITIAL_MINUTES * 60;
+      let filesDeleted = false;
+
+      // DOM элементы
+      const fileListEl = document.getElementById('fileList');
+      const pdfViewerEl = document.getElementById('pdfViewer');
+      const timerDisplayEl = document.getElementById('timerDisplay');
+      const deleteWarningEl = document.getElementById('deleteWarning');
+      const timerContainerEl = document.getElementById('timerContainer');
+
+      // Форматирование времени мм:сс
+      function formatTime(seconds) {
+        if (seconds <= 0) return '00:00';
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+      }
+
+      // Обновление таймера на экране
+      function updateTimerDisplay() {
+        if (filesDeleted) {
+          timerDisplayEl.textContent = '00:00';
+          return;
+        }
+        timerDisplayEl.textContent = formatTime(remainingSeconds);
+      }
+
+      // Действие при истечении времени (удаление файлов)
+      function expireFiles() {
+        if (filesDeleted) return;
+        filesDeleted = true;
+        
+        // Очищаем iframe (убираем PDF)
+        pdfViewerEl.src = '';
+        // Отключаем список файлов визуально
+        fileListEl.innerHTML = '<div style="padding:1rem;color:#7f8b9c;text-align:center;font-size:0.9rem;">⛔ Архив недоступен</div>';
+        
+        // Показываем предупреждение
+        deleteWarningEl.style.display = 'flex';
+        timerDisplayEl.textContent = '00:00';
+        
+        // Останавливаем таймер
+        if (timerInterval) {
+          clearInterval(timerInterval);
+          timerInterval = null;
+        }
+        
+        // Дополнительно можно сделать элементы неактивными (визуально)
+        timerContainerEl.style.opacity = '0.9';
+      }
+
+      // Запуск / перезапуск таймера (при необходимости, но используем один раз при загрузке)
+      function startTimer() {
+        if (timerInterval) clearInterval(timerInterval);
+        
+        timerInterval = setInterval(() => {
+          if (filesDeleted) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            return;
+          }
+          
+          remainingSeconds--;
+          updateTimerDisplay();
+          
+          if (remainingSeconds <= 0) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            expireFiles();
+          }
+        }, 1000);
+      }
+
+      // Рендер списка файлов
+      function renderFileList() {
+        if (filesDeleted) {
+          fileListEl.innerHTML = '<div style="padding:1rem;color:#7f8b9c;text-align:center;">Архив очищен</div>';
+          return;
+        }
+
+        fileListEl.innerHTML = documents.map((doc, index) => {
+          const activeClass = (index === currentDocIndex) ? 'active' : '';
+          return `
+            <div class="file-item ${activeClass}" data-index="${index}">
+              <span class="file-icon">📑</span>
+              <span>${doc.name}</span>
+            </div>
+          `;
+        }).join('');
+
+        // Навешиваем обработчики
+        document.querySelectorAll('.file-item').forEach(item => {
+          item.addEventListener('click', function(e) {
+            if (filesDeleted) return;
+            const index = parseInt(this.getAttribute('data-index'), 10);
+            if (!isNaN(index) && index !== currentDocIndex) {
+              setActiveDocument(index);
+            }
+          });
+        });
+      }
+
+      // Установить активный документ по индексу
+      function setActiveDocument(index) {
+        if (filesDeleted) return;
+        if (index < 0 || index >= documents.length) return;
+        
+        currentDocIndex = index;
+        const doc = documents[currentDocIndex];
+        
+        // Обновляем PDF в iframe
+        pdfViewerEl.src = doc.pdfData;
+        
+        // Обновляем список (подсветка)
+        renderFileList();
+        
+        // Опционально можно обновить карточку (но в задании карточка статична, 
+        // однако мы можем динамически менять тип/период? Оставим как есть, 
+        // карточка сверху отображает общую информацию. Для лучшего UX можно показать текущий документ
