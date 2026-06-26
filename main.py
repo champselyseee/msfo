@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 import requests
 import zipfile
 import tempfile
@@ -25,6 +25,34 @@ def cleanup(session_id: str):
     if session:
         shutil.rmtree(session["dir"], ignore_errors=True)
         print(f"Удалена сессия {session_id}")
+
+
+def send_file(file_path: str):
+    ext = os.path.splitext(file_path)[1].lower()
+
+    # PDF открываем прямо в браузере
+    if ext == ".pdf":
+        return StreamingResponse(
+            open(file_path, "rb"),
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": "inline"
+            }
+        )
+
+    # Остальные файлы
+    media_types = {
+        ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        ".xls": "application/vnd.ms-excel",
+        ".html": "text/html",
+        ".htm": "text/html",
+        ".xml": "application/xml"
+    }
+
+    return FileResponse(
+        path=file_path,
+        media_type=media_types.get(ext, "application/octet-stream")
+    )
 
 
 @app.get("/view/{file_id}")
@@ -89,7 +117,6 @@ def prepare(file_id: str):
         shutil.rmtree(temp_dir, ignore_errors=True)
         raise HTTPException(404, "Подходящих файлов не найдено")
 
-    # PDF -> Excel -> HTML -> XML
     files.sort(
         key=lambda f: priority.index(
             os.path.splitext(f["name"])[1].lower()
@@ -107,15 +134,11 @@ def prepare(file_id: str):
         args=[session_id]
     ).start()
 
-    # Один файл — сразу открываем
+    # Один файл — сразу открыть
     if len(files) == 1:
+        return send_file(files[0]["path"])
 
-        return FileResponse(
-            files[0]["path"],
-            filename=files[0]["name"]
-        )
-
-    # Несколько файлов — возвращаем список
+    # Несколько файлов — вернуть список
     return {
         "type": "multiple",
         "session": session_id,
@@ -140,9 +163,4 @@ def open_file(session_id: str, file_index: int):
     if file_index < 0 or file_index >= len(files):
         raise HTTPException(404, "Файл не найден")
 
-    file = files[file_index]
-
-    return FileResponse(
-        file["path"],
-        filename=file["name"]
-    )
+    return send_file(files[file_index]["path"])
