@@ -1,5 +1,7 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.templating import Jinja2Templates
+
 import requests
 import zipfile
 import tempfile
@@ -9,6 +11,8 @@ import os
 import uuid
 
 app = FastAPI()
+
+templates = Jinja2Templates(directory="templates")
 
 # session_id -> temp_dir, files
 sessions = {}
@@ -30,7 +34,6 @@ def cleanup(session_id: str):
 def send_file(file_path: str):
     ext = os.path.splitext(file_path)[1].lower()
 
-    # PDF открываем прямо в браузере
     if ext == ".pdf":
         return StreamingResponse(
             open(file_path, "rb"),
@@ -40,7 +43,6 @@ def send_file(file_path: str):
             }
         )
 
-    # Остальные файлы
     media_types = {
         ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         ".xls": "application/vnd.ms-excel",
@@ -56,7 +58,7 @@ def send_file(file_path: str):
 
 
 @app.get("/view/{file_id}")
-def prepare(file_id: str):
+def prepare(request: Request, file_id: str):
 
     session_id = str(uuid.uuid4())
 
@@ -99,7 +101,7 @@ def prepare(file_id: str):
         ".xml",
     )
 
-    for root, dirs, filenames in os.walk(temp_dir):
+    for root, _, filenames in os.walk(temp_dir):
         for filename in filenames:
 
             if filename == "report.zip":
@@ -134,22 +136,21 @@ def prepare(file_id: str):
         args=[session_id]
     ).start()
 
-    # Один файл — сразу открыть
-    if len(files) == 1:
-        return send_file(files[0]["path"])
-
-    # Несколько файлов — вернуть список
-    return {
-        "type": "multiple",
-        "session": session_id,
-        "files": [
-            {
-                "id": i,
-                "name": file["name"]
-            }
-            for i, file in enumerate(files)
-        ]
-    }
+    return templates.TemplateResponse(
+        "viewer.html",
+        {
+            "request": request,
+            "session": session_id,
+            "files": [
+                {
+                    "id": i,
+                    "name": f["name"]
+                }
+                for i, f in enumerate(files)
+            ],
+            "default_file": 0
+        }
+    )
 
 
 @app.get("/open/{session_id}/{file_index}")
