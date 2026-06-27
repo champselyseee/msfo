@@ -137,20 +137,20 @@ def prepare(request: Request, file_id: str):
     ).start()
 
     return templates.TemplateResponse(
-        "viewer.html",
-        {
-            "request": request,
-            "session": session_id,
-            "files": [
-                {
-                    "id": i,
-                    "name": f["name"]
-                }
-                for i, f in enumerate(files)
-            ],
-            "default_file": 0
-        }
-    )
+    request=request,
+    name="viewer.html",
+    context={
+        "session": session_id,
+        "files": [
+            {
+                "id": i,
+                "name": f["name"]
+            }
+            for i, f in enumerate(files)
+        ],
+        "default_file": 0
+    }
+)
 
 
 @app.get("/open/{session_id}/{file_index}")
