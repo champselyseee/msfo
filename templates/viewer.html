@@ -1,628 +1,1017 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-  <title>GAAP view • Бухгалтерская отчётность</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>GAAP view • Бухгалтерская отчётность</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
 
-    body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      background: #0b0f15;
-      color: #e4e8ee;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      padding: 1.25rem;
-      gap: 1.25rem;
-      line-height: 1.4;
-      -webkit-font-smoothing: antialiased;
-    }
+    <!-- PDF.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js">
+    </script>
 
-    /* Бренд-плашка */
-    .brand-badge {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    .brand-content {
-      background: linear-gradient(135deg, #1a2332 0%, #141e2b 100%);
-      border: 1px solid #263348;
-      border-radius: 2rem;
-      padding: 0.5rem 1.5rem;
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
-    }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #0b0f15;
+            color: #e4e8ee;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 1.25rem;
+            gap: 1.25rem;
+            line-height: 1.4;
+            -webkit-font-smoothing: antialiased;
+            overflow: hidden;
+        }
 
-    .brand-icon {
-      font-size: 1.3rem;
-    }
+        /* Бренд-плашка */
+        .brand-badge {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
 
-    .brand-text {
-      font-weight: 700;
-      font-size: 0.95rem;
-      letter-spacing: 0.3px;
-      background: linear-gradient(135deg, #a8c8f0 0%, #7aaae2 50%, #c4d9f7 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
+        .brand-content {
+            background: linear-gradient(135deg, #1a2332 0%, #141e2b 100%);
+            border: 1px solid #263348;
+            border-radius: 2rem;
+            padding: 0.5rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+        }
 
-    .brand-divider {
-      width: 1px;
-      height: 1.2rem;
-      background: #2d4055;
-      margin: 0 0.2rem;
-    }
+        .brand-icon {
+            font-size: 1.3rem;
+        }
 
-    .brand-author {
-      font-weight: 500;
-      font-size: 0.85rem;
-      color: #8da4c2;
-    }
+        .brand-text {
+            font-weight: 700;
+            font-size: 0.95rem;
+            letter-spacing: 0.3px;
+            background: linear-gradient(135deg, #a8c8f0 0%, #7aaae2 50%, #c4d9f7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
 
-    .dashboard {
-      display: flex;
-      flex-direction: column;
-      flex: 1;
-      gap: 1.25rem;
-      min-height: 0;
-    }
+        .brand-divider {
+            width: 1px;
+            height: 1.2rem;
+            background: #2d4055;
+            margin: 0 0.2rem;
+        }
 
-    .info-card {
-      background: #141a22;
-      border: 1px solid #212833;
-      border-radius: 1.5rem;
-      padding: 1.25rem 1.75rem;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 1rem;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(4px);
-    }
+        .brand-author {
+            font-weight: 500;
+            font-size: 0.85rem;
+            color: #8da4c2;
+        }
 
-    .company-block {
-      display: flex;
-      align-items: center;
-      gap: 0.9rem;
-      flex-wrap: wrap;
-    }
+        .dashboard {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            gap: 1.25rem;
+            min-height: 0;
+        }
 
-    .company-icon {
-      width: 3rem;
-      height: 3rem;
-      background: #1f2a37;
-      border-radius: 1rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.8rem;
-      color: #b0c7e9;
-      box-shadow: inset 0 0 10px rgba(0,0,0,0.3);
-    }
+        .info-card {
+            background: #141a22;
+            border: 1px solid #212833;
+            border-radius: 1.5rem;
+            padding: 1.25rem 1.75rem;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            flex-shrink: 0;
+        }
 
-    .company-details {
-      display: flex;
-      flex-direction: column;
-      gap: 0.15rem;
-    }
+        .company-block {
+            display: flex;
+            align-items: center;
+            gap: 0.9rem;
+            flex-wrap: wrap;
+        }
 
-    .company-name {
-      font-weight: 600;
-      font-size: 1.3rem;
-      letter-spacing: -0.3px;
-      color: #f0f4fc;
-    }
+        .company-icon {
+            width: 3rem;
+            height: 3rem;
+            background: #1f2a37;
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            color: #b0c7e9;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
+        }
 
-    .doc-meta {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1.2rem;
-      align-items: center;
-      color: #a1b4cc;
-      font-size: 0.9rem;
-    }
+        .company-details {
+            display: flex;
+            flex-direction: column;
+            gap: 0.15rem;
+        }
 
-    .doc-meta span {
-      display: flex;
-      align-items: center;
-      gap: 0.3rem;
-      background: #1d2530;
-      padding: 0.3rem 0.9rem;
-      border-radius: 2rem;
-      white-space: nowrap;
-    }
+        .company-name {
+            font-weight: 600;
+            font-size: 1.3rem;
+            letter-spacing: -0.3px;
+            color: #f0f4fc;
+        }
 
-    .doc-type-badge {
-      background: #1d3b5c;
-      color: #c6e0ff;
-      font-weight: 500;
-    }
+        .doc-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.2rem;
+            align-items: center;
+            color: #a1b4cc;
+            font-size: 0.9rem;
+        }
 
-    .extra-field {
-      background: #1f2a34;
-      padding: 0.3rem 1rem;
-      border-radius: 2rem;
-      font-weight: 500;
-      color: #cbd5e1;
-      display: flex;
-      align-items: center;
-      gap: 0.25rem;
-      font-size: 0.9rem;
-    }
+        .doc-meta span {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            background: #1d2530;
+            padding: 0.3rem 0.9rem;
+            border-radius: 2rem;
+            white-space: nowrap;
+        }
 
-    .viewer-layout {
-      display: flex;
-      flex: 1;
-      gap: 1.25rem;
-      min-height: 0;
-    }
+        .doc-type-badge {
+            background: #1d3b5c;
+            color: #c6e0ff;
+            font-weight: 500;
+        }
 
-    .file-panel {
-      width: 260px;
-      background: #11171f;
-      border-radius: 1.5rem;
-      border: 1px solid #222b38;
-      padding: 1.25rem 0.75rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.8rem;
-      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(4px);
-      flex-shrink: 0;
-    }
+        .extra-field {
+            background: #1f2a34;
+            padding: 0.3rem 1rem;
+            border-radius: 2rem;
+            font-weight: 500;
+            color: #cbd5e1;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.9rem;
+        }
 
-    .panel-title {
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.7px;
-      color: #7289a0;
-      padding: 0 0.6rem;
-      margin-bottom: 0.2rem;
-      font-weight: 600;
-    }
+        .viewer-layout {
+            display: flex;
+            flex: 1;
+            gap: 1.25rem;
+            min-height: 0;
+        }
 
-    .file-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      flex: 1;
-      overflow-y: auto;
-      padding-right: 0.25rem;
-    }
+        .file-panel {
+            width: 260px;
+            background: #11171f;
+            border-radius: 1.5rem;
+            border: 1px solid #222b38;
+            padding: 1.25rem 0.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            flex-shrink: 0;
+        }
 
-    .file-item {
-      background: #1a212b;
-      border: 1px solid #273141;
-      border-radius: 1rem;
-      padding: 0.85rem 0.9rem;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-      color: #ccdbe9;
-      font-weight: 500;
-      font-size: 0.9rem;
-      word-break: break-word;
-    }
+        .panel-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.7px;
+            color: #7289a0;
+            padding: 0 0.6rem;
+            margin-bottom: 0.2rem;
+            font-weight: 600;
+        }
 
-    .file-item.active {
-      background: #1e3a5f;
-      border-color: #3b6cb7;
-      color: white;
-      box-shadow: 0 4px 12px rgba(0, 120, 255, 0.25);
-    }
+        .file-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 0.25rem;
+        }
 
-    .file-item:hover:not(.active) {
-      background: #1f2937;
-      border-color: #3a4655;
-    }
+        .file-item {
+            background: #1a212b;
+            border: 1px solid #273141;
+            border-radius: 1rem;
+            padding: 0.85rem 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            color: #ccdbe9;
+            font-weight: 500;
+            font-size: 0.9rem;
+            word-break: break-word;
+        }
 
-    .file-icon {
-      font-size: 1.2rem;
-      opacity: 0.85;
-    }
+        .file-item.active {
+            background: #1e3a5f;
+            border-color: #3b6cb7;
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 120, 255, 0.25);
+        }
 
-    .pdf-container {
-      flex: 1;
-      background: #0d1219;
-      border-radius: 1.5rem;
-      border: 1px solid #242e3c;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.7);
-      min-height: 0;
-    }
+        .file-item:hover:not(.active) {
+            background: #1f2937;
+            border-color: #3a4655;
+        }
 
-    .pdf-viewer {
-      flex: 1;
-      width: 100%;
-      border: none;
-      background: #525659;
-    }
+        .file-icon {
+            font-size: 1.2rem;
+            opacity: 0.85;
+        }
 
-    .timer-bar {
-      background: #10151c;
-      border: 1px solid #242d3a;
-      border-radius: 2rem;
-      padding: 0.6rem 1.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.6rem;
-      font-size: 0.9rem;
-      font-weight: 500;
-      color: #b9c7dd;
-      margin-top: 0.1rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-    }
+        /* PDF Viewer Container */
+        .pdf-container {
+            flex: 1;
+            background: #0d1219;
+            border-radius: 1.5rem;
+            border: 1px solid #242e3c;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.7);
+            min-height: 0;
+            overflow: hidden;
+        }
 
-    .timer-value {
-      background: #1e2a38;
-      padding: 0.25rem 1rem;
-      border-radius: 2rem;
-      font-weight: 600;
-      color: #f0c38c;
-      letter-spacing: 0.3px;
-      font-variant-numeric: tabular-nums;
-    }
+        /* PDF Toolbar */
+        .pdf-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.6rem 1rem;
+            background: #10151c;
+            border-bottom: 1px solid #242e3c;
+            flex-wrap: wrap;
+            flex-shrink: 0;
+        }
 
-    .delete-warning {
-      color: #f28b82;
-      font-size: 0.8rem;
-      margin-left: 0.5rem;
-      display: flex;
-      align-items: center;
-      gap: 0.3rem;
-    }
+        .pdf-toolbar .btn {
+            background: #1a2533;
+            border: 1px solid #2d3b4a;
+            color: #c8d6e8;
+            border-radius: 0.6rem;
+            padding: 0.35rem 0.8rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-family: inherit;
+            user-select: none;
+            white-space: nowrap;
+        }
 
-    .empty-state {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
-      color: #7f8b9c;
-      font-size: 1.1rem;
-      text-align: center;
-      padding: 2rem;
-    }
+        .pdf-toolbar .btn:hover {
+            background: #253447;
+            border-color: #3b5a7a;
+        }
 
-    /* ========== МОБИЛЬНАЯ ВЕРСИЯ ========== */
-    @media (max-width: 700px) {
-      body {
-        padding: 0.5rem;
-        gap: 0.5rem;
-      }
+        .pdf-toolbar .btn:active {
+            transform: scale(0.95);
+        }
 
-      .brand-content {
-        padding: 0.35rem 1rem;
-      }
+        .pdf-toolbar .btn-icon {
+            font-size: 1.1rem;
+        }
 
-      .brand-text {
-        font-size: 0.8rem;
-      }
+        .pdf-toolbar .page-nav {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
 
-      .brand-author {
-        font-size: 0.75rem;
-      }
+        .pdf-toolbar .page-nav input {
+            width: 44px;
+            background: #0d1219;
+            border: 1px solid #2d3b4a;
+            border-radius: 0.4rem;
+            color: #e4e8ee;
+            text-align: center;
+            font-size: 0.85rem;
+            padding: 0.25rem 0;
+            font-family: inherit;
+        }
 
-      /* Карточка — компактная */
-      .info-card {
-        padding: 0.6rem 0.9rem;
-        gap: 0.4rem;
-        border-radius: 1rem;
-      }
+        .pdf-toolbar .page-nav input:focus {
+            outline: none;
+            border-color: #3b6cb7;
+        }
 
-      .company-icon {
-        width: 2.2rem;
-        height: 2.2rem;
-        font-size: 1.3rem;
-        border-radius: 0.7rem;
-      }
+        .pdf-toolbar .page-info {
+            color: #8da4c2;
+            font-size: 0.85rem;
+            min-width: 60px;
+        }
 
-      .company-name {
-        font-size: 1rem;
-      }
+        .pdf-toolbar .spacer {
+            flex: 1;
+            min-width: 8px;
+        }
 
-      .doc-meta {
-        gap: 0.3rem;
-      }
+        .pdf-toolbar .zoom-level {
+            color: #8da4c2;
+            font-size: 0.8rem;
+            min-width: 45px;
+            text-align: center;
+        }
 
-      .doc-meta span {
-        padding: 0.2rem 0.5rem;
-        font-size: 0.7rem;
-      }
+        /* PDF Canvas Wrapper (scrollable) */
+        .pdf-canvas-wrapper {
+            flex: 1;
+            overflow: auto;
+            background: #1a1f26;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 1rem;
+            cursor: grab;
+            position: relative;
+        }
 
-      .extra-field {
-        display: none;
-      }
+        .pdf-canvas-wrapper:active {
+            cursor: grabbing;
+        }
 
-      /* Layout — вертикальный */
-      .viewer-layout {
-        flex-direction: column;
-        gap: 0.5rem;
-        flex: 1;
-      }
+        .pdf-canvas-wrapper canvas {
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+            border-radius: 4px;
+            background: white;
+            display: block;
+            max-width: 100%;
+            height: auto;
+        }
 
-      /* Панель файлов — компактная горизонтальная */
-      .file-panel {
-        width: 100%;
-        max-height: none;
-        flex-shrink: 0;
-        padding: 0.5rem 0.6rem;
-        border-radius: 1rem;
-        gap: 0.4rem;
-      }
+        .pdf-canvas-wrapper .empty-state {
+            color: #7f8b9c;
+            font-size: 1.1rem;
+            text-align: center;
+            padding: 2rem;
+        }
 
-      .panel-title {
-        font-size: 0.7rem;
-        padding: 0 0.3rem;
-        margin-bottom: 0;
-      }
+        .pdf-canvas-wrapper .expired-message {
+            color: #f28b82;
+            font-size: 1.3rem;
+            text-align: center;
+            padding: 2rem;
+            font-weight: 500;
+        }
 
-      .file-list {
-        flex-direction: row;
-        flex-wrap: nowrap;
-        gap: 0.4rem;
-        overflow-x: auto;
-        overflow-y: hidden;
-        padding-bottom: 0.2rem;
-      }
+        /* Timer Bar */
+        .timer-bar {
+            background: #10151c;
+            border: 1px solid #242d3a;
+            border-radius: 2rem;
+            padding: 0.6rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #b9c7dd;
+            margin-top: 0.1rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            flex-shrink: 0;
+        }
 
-      .file-item {
-        flex: 0 0 auto;
-        white-space: nowrap;
-        padding: 0.5rem 0.7rem;
-        font-size: 0.75rem;
-        border-radius: 0.7rem;
-      }
+        .timer-value {
+            background: #1e2a38;
+            padding: 0.25rem 1rem;
+            border-radius: 2rem;
+            font-weight: 600;
+            color: #f0c38c;
+            letter-spacing: 0.3px;
+            font-variant-numeric: tabular-nums;
+        }
 
-      /* PDF Viewer — максимально большой */
-      .pdf-container {
-        flex: 1;
-        border-radius: 1rem;
-        min-height: 0;
-      }
+        .delete-warning {
+            color: #f28b82;
+            font-size: 0.8rem;
+            margin-left: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
 
-      /* Таймер — компактный */
-      .timer-bar {
-        padding: 0.4rem 0.8rem;
-        font-size: 0.75rem;
-        border-radius: 1.5rem;
-        gap: 0.3rem;
-      }
+        /* ========== МОБИЛЬНАЯ ВЕРСИЯ ========== */
+        @media (max-width: 700px) {
+            body {
+                padding: 0.5rem;
+                gap: 0.5rem;
+            }
 
-      .timer-value {
-        padding: 0.2rem 0.6rem;
-        font-size: 0.8rem;
-      }
+            .brand-content {
+                padding: 0.35rem 1rem;
+            }
+            .brand-text {
+                font-size: 0.8rem;
+            }
+            .brand-author {
+                font-size: 0.75rem;
+            }
 
-      .delete-warning {
-        font-size: 0.7rem;
-        margin-left: 0.2rem;
-      }
-    }
-  </style>
+            .info-card {
+                padding: 0.6rem 0.9rem;
+                gap: 0.4rem;
+                border-radius: 1rem;
+            }
+            .company-icon {
+                width: 2.2rem;
+                height: 2.2rem;
+                font-size: 1.3rem;
+                border-radius: 0.7rem;
+            }
+            .company-name {
+                font-size: 1rem;
+            }
+            .doc-meta {
+                gap: 0.3rem;
+            }
+            .doc-meta span {
+                padding: 0.2rem 0.5rem;
+                font-size: 0.7rem;
+            }
+            .extra-field {
+                display: none;
+            }
+
+            .viewer-layout {
+                flex-direction: column;
+                gap: 0.5rem;
+                flex: 1;
+            }
+
+            .file-panel {
+                width: 100%;
+                flex-shrink: 0;
+                padding: 0.5rem 0.6rem;
+                border-radius: 1rem;
+                gap: 0.4rem;
+                max-height: 100px;
+            }
+            .panel-title {
+                font-size: 0.7rem;
+                padding: 0 0.3rem;
+                margin-bottom: 0;
+            }
+            .file-list {
+                flex-direction: row;
+                flex-wrap: nowrap;
+                gap: 0.4rem;
+                overflow-x: auto;
+                overflow-y: hidden;
+                padding-bottom: 0.2rem;
+            }
+            .file-item {
+                flex: 0 0 auto;
+                white-space: nowrap;
+                padding: 0.5rem 0.7rem;
+                font-size: 0.75rem;
+                border-radius: 0.7rem;
+            }
+
+            .pdf-container {
+                flex: 1;
+                border-radius: 1rem;
+                min-height: 0;
+            }
+
+            .pdf-toolbar {
+                padding: 0.3rem 0.5rem;
+                gap: 0.3rem;
+            }
+            .pdf-toolbar .btn {
+                padding: 0.25rem 0.5rem;
+                font-size: 0.7rem;
+            }
+            .pdf-toolbar .btn-icon {
+                font-size: 0.9rem;
+            }
+            .pdf-toolbar .page-nav input {
+                width: 34px;
+                font-size: 0.75rem;
+            }
+            .pdf-toolbar .page-info {
+                font-size: 0.7rem;
+                min-width: 40px;
+            }
+            .pdf-toolbar .zoom-level {
+                font-size: 0.7rem;
+                min-width: 35px;
+            }
+            .pdf-toolbar .spacer {
+                display: none;
+            }
+
+            .pdf-canvas-wrapper {
+                padding: 0.5rem;
+            }
+
+            .timer-bar {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.75rem;
+                border-radius: 1.5rem;
+                gap: 0.3rem;
+            }
+            .timer-value {
+                padding: 0.2rem 0.6rem;
+                font-size: 0.8rem;
+            }
+            .delete-warning {
+                font-size: 0.7rem;
+                margin-left: 0.2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .pdf-toolbar .btn span.btn-text {
+                display: none;
+            }
+            .pdf-toolbar .btn {
+                padding: 0.25rem 0.45rem;
+            }
+        }
+
+        /* Скрытие на время загрузки */
+        .hidden {
+            display: none !important;
+        }
+    </style>
 </head>
 <body>
-  <!-- GAAP view by Camille V -->
-  <div class="brand-badge">
-    <div class="brand-content">
-      <span class="brand-icon">📐</span>
-      <span class="brand-text">GAAP view</span>
-      <span class="brand-divider"></span>
-      <span class="brand-author">by Camille V</span>
-    </div>
-  </div>
 
-  <div class="dashboard">
-    <div class="info-card">
-      <div class="company-block">
-        <div class="company-icon">📊</div>
-        <div class="company-details">
-          <div class="company-name">Бухгалтерская отчётность</div>
-          <div class="doc-meta">
-            <span class="doc-type-badge">📄 Архив документов</span>
-            <span>📅 {{ session[:8] if session else "—" }}</span>
-            <span>🗓️ {{ files|length if files else 0 }} файлов</span>
-          </div>
+    <!-- GAAP view by Camille V -->
+    <div class="brand-badge">
+        <div class="brand-content">
+            <span class="brand-icon">📐</span>
+            <span class="brand-text">GAAP view</span>
+            <span class="brand-divider"></span>
+            <span class="brand-author">by Camille V</span>
         </div>
-      </div>
-      <div class="extra-field">
-        🔐 Сессия: {{ session[:8] if session else "—" }}...
-      </div>
     </div>
 
-    <div class="viewer-layout">
-      {% if files|length > 1 %}
-      <div class="file-panel">
-        <div class="panel-title">📁 Документы архива</div>
-        <div class="file-list" id="fileList">
-          {% for file in files %}
-          <div class="file-item {% if loop.index0 == default_file %}active{% endif %}" 
-               data-file-index="{{ file.id }}"
-               data-file-url="/open/{{ session }}/{{ file.id }}">
-            <span class="file-icon">
-              {% set ext = file.name.split('.')[-1] | lower %}
-              {% if ext == 'pdf' %}📕
-              {% elif ext in ['xlsx', 'xls'] %}📊
-              {% elif ext in ['html', 'htm'] %}🌐
-              {% elif ext == 'xml' %}📋
-              {% else %}📑{% endif %}
-            </span>
-            <span>{{ file.name }}</span>
-          </div>
-          {% endfor %}
+    <div class="dashboard">
+        <div class="info-card">
+            <div class="company-block">
+                <div class="company-icon">📊</div>
+                <div class="company-details">
+                    <div class="company-name">Бухгалтерская отчётность</div>
+                    <div class="doc-meta">
+                        <span class="doc-type-badge">📄 Архив документов</span>
+                        <span>📅 {{ session[:8] if session else "—" }}</span>
+                        <span>🗓️ {{ files|length if files else 0 }} файлов</span>
+                    </div>
+                </div>
+            </div>
+            <div class="extra-field">
+                🔐 Сессия: {{ session[:8] if session else "—" }}...
+            </div>
         </div>
-      </div>
-      {% endif %}
 
-      <div class="pdf-container">
-        {% if files %}
-        <iframe id="fileViewer" 
-                class="pdf-viewer" 
-                src="/open/{{ session }}/{{ default_file }}"
-                title="Просмотр документа">
-        </iframe>
-        {% else %}
-        <div class="empty-state">
-          📭 Нет доступных документов
+        <div class="viewer-layout">
+            {% if files|length > 1 %}
+            <div class="file-panel">
+                <div class="panel-title">📁 Документы архива</div>
+                <div class="file-list" id="fileList">
+                    {% for file in files %}
+                    <div class="file-item {% if loop.index0 == default_file %}active{% endif %}"
+                    data-file-index="{{ file.id }}"
+                    data-file-url="/open/{{ session }}/{{ file.id }}">
+                    <span class="file-icon">
+                        {% set ext = file.name.split('.')[-1] | lower %}
+                        {% if ext == 'pdf' %}📕
+                        {% elif ext in ['xlsx', 'xls'] %}📊
+                        {% elif ext in ['html', 'htm'] %}🌐
+                        {% elif ext == 'xml' %}📋
+                        {% else %}📑{% endif %}
+                    </span>
+                    <span>{{ file.name }}</span>
+                </div>
+                {% endfor %}
+            </div>
         </div>
         {% endif %}
-      </div>
+
+        <div class="pdf-container">
+            <!-- PDF Toolbar -->
+            <div class="pdf-toolbar" id="pdfToolbar">
+                <button class="btn" id="zoomOutBtn" title="Уменьшить">
+                    <span class="btn-icon">🔍−</span>
+                    <span class="btn-text">Меньше</span>
+                </button>
+                <button class="btn" id="zoomInBtn" title="Увеличить">
+                    <span class="btn-icon">🔍+</span>
+                    <span class="btn-text">Больше</span>
+                </button>
+                <span class="zoom-level" id="zoomLevel">100%</span>
+
+                <span class="spacer"></span>
+
+                <div class="page-nav">
+                    <button class="btn" id="prevPageBtn" title="Предыдущая">◀</button>
+                    <input type="number" id="pageInput" value="1" min="1">
+                    <span class="page-info">/ <span id="pageCount">0</span></span>
+                    <button class="btn" id="nextPageBtn" title="Следующая">▶</button>
+                </div>
+
+                <span class="spacer"></span>
+
+                <button class="btn" id="fullscreenBtn" title="На весь экран">
+                    <span class="btn-icon">⛶</span>
+                    <span class="btn-text">Fullscreen</span>
+                </button>
+                <button class="btn" id="downloadBtn" title="Скачать PDF">
+                    <span class="btn-icon">⬇</span>
+                    <span class="btn-text">Скачать</span>
+                </button>
+            </div>
+
+            <!-- PDF Canvas Wrapper -->
+            <div class="pdf-canvas-wrapper" id="pdfWrapper">
+                <canvas id="pdfCanvas"></canvas>
+                <div class="empty-state" id="emptyState">📭 Нет доступных документов</div>
+                <div class="expired-message hidden" id="expiredMessage">⚠️ Файлы удалены</div>
+            </div>
+        </div>
     </div>
 
     <div class="timer-bar" id="timerContainer">
-      <span>⏳ Автоудаление через</span>
-      <span class="timer-value" id="timerDisplay">10:00</span>
-      <span class="delete-warning" id="deleteWarning" style="display: none;">⚠️ Файлы удалены</span>
+        <span>⏳ Автоудаление через</span>
+        <span class="timer-value" id="timerDisplay">10:00</span>
+        <span class="delete-warning" id="deleteWarning" style="display: none;">⚠️ Файлы удалены</span>
     </div>
-  </div>
+</div>
 
-  <script>
+<script>
     (function() {
-      const sessionId = "{{ session }}";
-      const files = [
-        {% for file in files %}
-        {
-          id: {{ file.id }},
-          name: "{{ file.name }}",
-          url: "/open/{{ session }}/{{ file.id }}"
-        }{% if not loop.last %},{% endif %}
-        {% endfor %}
-      ];
-      
-      const INITIAL_MINUTES = 10;
-      let remainingSeconds = INITIAL_MINUTES * 60;
-      let timerInterval = null;
-      let filesDeleted = false;
+        // ============================================================
+        // 1. ДАННЫЕ ИЗ БЭКЕНДА (Jinja2)
+        // ============================================================
+        const sessionId = "{{ session }}";
+        const files = [
+            {% for file in files %}
+            { id: {{ file.id }}, name: "{{ file.name }}", url: "/open/{{ session }}/{{ file.id }}" }{% if not loop.last %},{% endif %}
+            {% endfor %}
+        ];
 
-      const fileViewerEl = document.getElementById('fileViewer');
-      const timerDisplayEl = document.getElementById('timerDisplay');
-      const deleteWarningEl = document.getElementById('deleteWarning');
-      const fileItems = document.querySelectorAll('.file-item');
+        // ============================================================
+        // 2. ПЕРЕМЕННЫЕ
+        // ============================================================
+        let currentFileIndex = 0;
+        let pdfDoc = null;
+        let pageNum = 1;
+        let scale = 1.2;
+        let canvas = document.getElementById('pdfCanvas');
+        let ctx = canvas.getContext('2d');
+        let wrapper = document.getElementById('pdfWrapper');
+        let emptyState = document.getElementById('emptyState');
+        let expiredMessage = document.getElementById('expiredMessage');
 
-      function formatTime(seconds) {
-        if (seconds <= 0) return '00:00';
-        const mins = Math.floor(seconds / 60);
-        const secs = Math.floor(seconds % 60);
-        return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-      }
+        let isDragging = false;
+        let startX, startY, scrollLeft, scrollTop;
 
-      function updateTimerDisplay() {
-        if (filesDeleted) {
-          timerDisplayEl.textContent = '00:00';
-          return;
+        // ============================================================
+        // 3. ТАЙМЕР АВТОУДАЛЕНИЯ
+        // ============================================================
+        const INITIAL_MINUTES = 10;
+        let remainingSeconds = INITIAL_MINUTES * 60;
+        let timerInterval = null;
+        let filesDeleted = false;
+
+        const timerDisplayEl = document.getElementById('timerDisplay');
+        const deleteWarningEl = document.getElementById('deleteWarning');
+
+        function formatTime(seconds) {
+            if (seconds <= 0) return '00:00';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
         }
-        timerDisplayEl.textContent = formatTime(remainingSeconds);
-      }
 
-      function expireFiles() {
-        if (filesDeleted) return;
-        filesDeleted = true;
-        
-        if (fileViewerEl) {
-          fileViewerEl.src = '';
-        }
-        
-        fileItems.forEach(item => {
-          item.style.pointerEvents = 'none';
-          item.style.opacity = '0.5';
-          item.classList.remove('active');
-        });
-        
-        deleteWarningEl.style.display = 'flex';
-        timerDisplayEl.textContent = '00:00';
-        
-        if (timerInterval) {
-          clearInterval(timerInterval);
-          timerInterval = null;
-        }
-      }
-
-      function startTimer() {
-        if (timerInterval) clearInterval(timerInterval);
-        
-        timerInterval = setInterval(() => {
-          if (filesDeleted) {
-            clearInterval(timerInterval);
-            timerInterval = null;
-            return;
-          }
-          
-          remainingSeconds--;
-          updateTimerDisplay();
-          
-          if (remainingSeconds <= 0) {
-            clearInterval(timerInterval);
-            timerInterval = null;
-            expireFiles();
-          }
-        }, 1000);
-      }
-
-      function switchFile(fileIndex, fileUrl, clickedElement) {
-        if (filesDeleted) return;
-        
-        if (fileViewerEl) {
-          fileViewerEl.src = fileUrl;
-        }
-        
-        fileItems.forEach(item => {
-          item.classList.remove('active');
-        });
-        if (clickedElement) {
-          clickedElement.classList.add('active');
-        }
-      }
-
-      if (fileItems.length > 0) {
-        fileItems.forEach(item => {
-          item.addEventListener('click', function() {
-            const fileIndex = parseInt(this.getAttribute('data-file-index'));
-            const fileUrl = this.getAttribute('data-file-url');
-            
-            if (!isNaN(fileIndex) && fileUrl) {
-              switchFile(fileIndex, fileUrl, this);
+        function updateTimerDisplay() {
+            if (filesDeleted) {
+                timerDisplayEl.textContent = '00:00';
+                return;
             }
-          });
-        });
-      }
-
-      function init() {
-        filesDeleted = false;
-        remainingSeconds = INITIAL_MINUTES * 60;
-        
-        if (deleteWarningEl) {
-          deleteWarningEl.style.display = 'none';
+            timerDisplayEl.textContent = formatTime(remainingSeconds);
         }
-        
-        updateTimerDisplay();
-        startTimer();
-      }
 
-      window.addEventListener('beforeunload', () => {
-        if (timerInterval) clearInterval(timerInterval);
-      });
+        function expireFiles() {
+            if (filesDeleted) return;
+            filesDeleted = true;
 
-      init();
+            // Очищаем canvas
+            canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+            canvas.style.display = 'none';
+            emptyState.style.display = 'none';
+            expiredMessage.classList.remove('hidden');
+
+            // Блокируем кнопки
+            document.querySelectorAll('#pdfToolbar .btn, #pdfToolbar input').forEach(el => el.disabled = true);
+
+            deleteWarningEl.style.display = 'flex';
+            timerDisplayEl.textContent = '00:00';
+
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (filesDeleted) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                    return;
+                }
+                remainingSeconds--;
+                updateTimerDisplay();
+                if (remainingSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                    expireFiles();
+                }
+            }, 1000);
+        }
+
+        // ============================================================
+        // 4. ЗАГРУЗКА И РЕНДЕРИНГ PDF
+        // ============================================================
+        function getCurrentFileUrl() {
+            if (files.length === 0) return null;
+            return files[currentFileIndex]?.url || null;
+        }
+
+        function getCurrentFileName() {
+            if (files.length === 0) return null;
+            return files[currentFileIndex]?.name || null;
+        }
+
+        function renderPage(num) {
+            if (!pdfDoc || filesDeleted) return;
+
+            const totalPages = pdfDoc.numPages;
+            if (num < 1) num = 1;
+            if (num > totalPages) num = totalPages;
+            pageNum = num;
+
+            document.getElementById('pageInput').value = num;
+            document.getElementById('pageCount').textContent = totalPages;
+
+            pdfDoc.getPage(num).then(page => {
+                const viewport = page.getViewport({ scale: scale });
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+                canvas.style.display = 'block';
+                emptyState.style.display = 'none';
+                expiredMessage.classList.add('hidden');
+
+                const renderContext = {
+                    canvasContext: ctx,
+                    viewport: viewport,
+                };
+                page.render(renderContext).promise.then(() => {
+                    // Обновляем zoom display
+                    document.getElementById('zoomLevel').textContent = Math.round(scale * 100) + '%';
+                });
+            }).catch(err => {
+                console.warn('Ошибка рендеринга страницы:', err);
+            });
+        }
+
+        function loadPdf(url) {
+            if (!url) {
+                canvas.style.display = 'none';
+                emptyState.style.display = 'block';
+                expiredMessage.classList.add('hidden');
+                return;
+            }
+
+            // Показываем loading
+            emptyState.textContent = '⏳ Загрузка PDF...';
+            emptyState.style.display = 'block';
+            canvas.style.display = 'none';
+
+            pdfjsLib.getDocument(url).promise.then(pdf => {
+                pdfDoc = pdf;
+                emptyState.style.display = 'none';
+                canvas.style.display = 'block';
+                renderPage(1);
+            }).catch(err => {
+                console.error('Ошибка загрузки PDF:', err);
+                emptyState.textContent = '❌ Не удалось загрузить PDF';
+                emptyState.style.display = 'block';
+                canvas.style.display = 'none';
+            });
+        }
+
+        function switchFile(index) {
+            if (filesDeleted) return;
+            if (index < 0 || index >= files.length) return;
+            currentFileIndex = index;
+            const url = getCurrentFileUrl();
+
+            // Обновляем активный класс в списке файлов
+            document.querySelectorAll('.file-item').forEach((el, i) => {
+                el.classList.toggle('active', i === index);
+            });
+
+            if (url) {
+                loadPdf(url);
+            }
+        }
+
+        // ============================================================
+        // 5. НАВИГАЦИЯ ПО СТРАНИЦАМ
+        // ============================================================
+        function goToPage(num) {
+            if (!pdfDoc || filesDeleted) return;
+            const total = pdfDoc.numPages;
+            if (num < 1) num = 1;
+            if (num > total) num = total;
+            renderPage(num);
+        }
+
+        // ============================================================
+        // 6. DRAG-SCROLL (перетаскивание)
+        // ============================================================
+        wrapper.addEventListener('mousedown', (e) => {
+            if (filesDeleted || !pdfDoc) return;
+            isDragging = true;
+            startX = e.pageX;
+            startY = e.pageY;
+            scrollLeft = wrapper.scrollLeft;
+            scrollTop = wrapper.scrollTop;
+            wrapper.style.cursor = 'grabbing';
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            const x = e.pageX;
+            const y = e.pageY;
+            const dx = x - startX;
+            const dy = y - startY;
+            wrapper.scrollLeft = scrollLeft - dx;
+            wrapper.scrollTop = scrollTop - dy;
+        });
+
+        window.addEventListener('mouseup', () => {
+            if (isDragging) {
+                isDragging = false;
+                wrapper.style.cursor = 'grab';
+            }
+        });
+
+        // ============================================================
+        // 7. FULLSCREEN (включая iOS)
+        // ============================================================
+        function toggleFullscreen() {
+            const container = document.querySelector('.pdf-container');
+            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                if (container.requestFullscreen) {
+                    container.requestFullscreen();
+                } else if (container.webkitRequestFullscreen) {
+                    container.webkitRequestFullscreen();
+                } else if (container.msRequestFullscreen) {
+                    container.msRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+            }
+        }
+
+        // ============================================================
+        // 8. ИНИЦИАЛИЗАЦИЯ
+        // ============================================================
+        function init() {
+            // Таймер
+            filesDeleted = false;
+            remainingSeconds = INITIAL_MINUTES * 60;
+            updateTimerDisplay();
+            startTimer();
+
+            // Загружаем первый PDF
+            if (files.length > 0) {
+                currentFileIndex = 0;
+                loadPdf(files[0].url);
+            } else {
+                canvas.style.display = 'none';
+                emptyState.style.display = 'block';
+                emptyState.textContent = '📭 Нет доступных документов';
+            }
+
+            // Обработчики файлов
+            document.querySelectorAll('.file-item').forEach((el, i) => {
+                el.addEventListener('click', function() {
+                    const idx = parseInt(this.getAttribute('data-file-index'));
+                    if (!isNaN(idx)) switchFile(idx);
+                });
+            });
+
+            // Навигация страниц
+            document.getElementById('prevPageBtn').addEventListener('click', () => {
+                if (!pdfDoc || filesDeleted) return;
+                goToPage(pageNum - 1);
+            });
+            document.getElementById('nextPageBtn').addEventListener('click', () => {
+                if (!pdfDoc || filesDeleted) return;
+                goToPage(pageNum + 1);
+            });
+            document.getElementById('pageInput').addEventListener('change', function() {
+                if (!pdfDoc || filesDeleted) return;
+                const val = parseInt(this.value);
+                if (!isNaN(val)) goToPage(val);
+            });
+            document.getElementById('pageInput').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    this.blur();
+                }
+            });
+
+            // Зум
+            document.getElementById('zoomInBtn').addEventListener('click', () => {
+                if (!pdfDoc || filesDeleted) return;
+                scale = Math.min(4.0, scale + 0.2);
+                renderPage(pageNum);
+            });
+            document.getElementById('zoomOutBtn').addEventListener('click', () => {
+                if (!pdfDoc || filesDeleted) return;
+                scale = Math.max(0.4, scale - 0.2);
+                renderPage(pageNum);
+            });
+
+            // Fullscreen
+            document.getElementById('fullscreenBtn').addEventListener('click', toggleFullscreen);
+
+            // Скачать
+            document.getElementById('downloadBtn').addEventListener('click', () => {
+                const url = getCurrentFileUrl();
+                if (url) window.open(url, '_blank');
+            });
+
+            // Очистка таймера при уходе
+            window.addEventListener('beforeunload', () => {
+                if (timerInterval) clearInterval(timerInterval);
+            });
+        }
+
+        // Запускаем после загрузки DOM
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+
+        // ============================================================
+        // 9. ПЕРЕХВАТ КЛИКОВ НА ФАЙЛЫ (если есть внешние ссылки)
+        // ============================================================
+        // Дополнительно — если файлы были добавлены динамически, но мы уже всё обработали выше.
+        // На случай, если файловый список обновляется позже — наблюдатель не нужен, т.к. всё рендерится на сервере.
+
+        // ============================================================
+        // 10. ПОДДЕРЖКА PINCH-ZOOM НА МОБИЛЬНЫХ (через масштабирование CSS)
+        // ============================================================
+        // Пользовательский pinch-zoom уже работает через браузерный zoom страницы.
+        // Для дополнительного контроля можно использовать touch events, но это усложнит код.
+        // Браузерный zoom + наше масштабирование дают хороший результат.
+
     })();
-  </script>
+</script>
+
 </body>
 </html>
