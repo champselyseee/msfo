@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Query
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 
@@ -58,8 +58,19 @@ def send_file(file_path: str):
 
 
 @app.get("/view/{file_id}")
-def prepare(request: Request, file_id: str):
-
+def prepare(
+    request: Request,
+    file_id: str,
+    company_name: str = Query(None, description="Название компании для отображения")
+):
+    """
+    Эндпоинт для просмотра отчётности.
+    
+    Параметры:
+    - file_id: ID файла с e-disclosure.ru
+    - company_name: (опционально) название компании, будет отображаться в интерфейсе
+    """
+    
     session_id = str(uuid.uuid4())
 
     temp_dir = os.path.join(
@@ -125,9 +136,26 @@ def prepare(request: Request, file_id: str):
         )
     )
 
+    # Если company_name не передан, пытаемся извлечь из файлов
+    if not company_name:
+        # Пробуем найти название в именах файлов
+        for file in files:
+            name = file["name"]
+            # Пример: "ООО Ромашка_Бухгалтерский баланс.pdf"
+            if "_" in name:
+                possible_name = name.split("_")[0]
+                if len(possible_name) > 3:  # Минимальная длина названия
+                    company_name = possible_name
+                    break
+        
+        # Если не нашли - используем значение по умолчанию
+        if not company_name:
+            company_name = "Бухгалтерская отчётность"
+
     sessions[session_id] = {
         "dir": temp_dir,
-        "files": files
+        "files": files,
+        "company_name": company_name  # Сохраняем название в сессии
     }
 
     threading.Timer(
@@ -137,20 +165,21 @@ def prepare(request: Request, file_id: str):
     ).start()
 
     return templates.TemplateResponse(
-    request=request,
-    name="viewer.html",
-    context={
-        "session": session_id,
-        "files": [
-            {
-                "id": i,
-                "name": f["name"]
-            }
-            for i, f in enumerate(files)
-        ],
-        "default_file": 0
-    }
-)
+        request=request,
+        name="viewer.html",
+        context={
+            "session": session_id,
+            "company_name": company_name,  # ← Передаём в шаблон
+            "files": [
+                {
+                    "id": i,
+                    "name": f["name"]
+                }
+                for i, f in enumerate(files)
+            ],
+            "default_file": 0
+        }
+    )
 
 
 @app.get("/open/{session_id}/{file_index}")
